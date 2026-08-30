@@ -11,6 +11,7 @@ import {
   SCORE_POP,
   SCORE_SPECIAL,
   SHOT_SPEED,
+  skipAheadScore,
 } from "./constants";
 import {
   cloneGrid,
@@ -312,6 +313,16 @@ export class Engine {
     this.maxCombo = 0;
     this.missStreak = 0;
     this.loadLevel(this.level);
+    if (this.level >= 3) {
+      this.score = skipAheadScore(this.level);
+      this.currentSpecial = pickGoodSpecial(() => Math.random());
+      this.announceSpecial(this.currentSpecial);
+      const skipped = Array.from({ length: this.level - 1 }, (_, i) => String(i + 1)).join("·");
+      this.toast = `${skipped}스테이지 보너스 +${this.score.toLocaleString()}`;
+      this.toastKey += 1;
+      this.toastT = 2.6;
+      this.praise = this.toast;
+    }
     this.overlay = "playing";
     this.phase = "ready";
     this.hudDirty = true;

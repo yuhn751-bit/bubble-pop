@@ -18,6 +18,15 @@ export const SCORE_FALL = 20;
 export const SCORE_CLEAR = 800;
 export const SCORE_SPECIAL = 50;
 
+export function skipAheadScore(startLevel: number): number {
+  let total = 0;
+  for (let level = 1; level < startLevel; level++) {
+    total += SCORE_CLEAR * level;
+    total += 250 * level;
+  }
+  return total;
+}
+
 export const BUBBLE_COLORS = [
   { base: "#e24b57", dark: "#8a1824", light: "#ff9aa3", glow: "#ff6b76" },
   { base: "#f0a202", dark: "#8a5600", light: "#ffe08a", glow: "#ffc14a" },
