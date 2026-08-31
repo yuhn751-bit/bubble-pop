@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { HandHelping, Pause, Play, RotateCcw, Trophy, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LeaderboardHeader, LeaderboardList } from "@/components/leaderboard-panel";
 import { Engine } from "@/game/engine";
+import { listScores, sanitizeName, submitScore, type ScoreRow } from "@/game/leaderboard";
+import { loadSave, writeSave } from "@/game/save";
 import type { HudState } from "@/game/types";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +34,16 @@ export function GameView() {
   const [skipOpen, setSkipOpen] = useState(false);
   const [skipName, setSkipName] = useState("");
   const [skipError, setSkipError] = useState("");
+  const [boardOpen, setBoardOpen] = useState(false);
+  const [boardRows, setBoardRows] = useState<ScoreRow[]>([]);
+  const [boardError, setBoardError] = useState("");
+  const [boardLoading, setBoardLoading] = useState(false);
+  const [playerName, setPlayerName] = useState("유수현");
+  const [submitMsg, setSubmitMsg] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const submittedRef = useRef(false);
+  const overlay = hud.overlay;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -48,7 +61,61 @@ export function GameView() {
     if (skipOpen) skipInputRef.current?.focus();
   }, [skipOpen]);
 
-  const overlay = hud.overlay;
+  useEffect(() => {
+    setPlayerName(loadSave().name);
+  }, []);
+
+  useEffect(() => {
+    if (overlay !== "over") {
+      setSubmitMsg("");
+      setSubmitting(false);
+      setSubmitted(false);
+      submittedRef.current = false;
+    }
+  }, [overlay]);
+
+  const loadBoard = async () => {
+    setBoardLoading(true);
+    try {
+      const rows = await listScores();
+      setBoardRows(rows);
+      setBoardError("");
+    } catch {
+      setBoardError("지금은 랭킹을 불러올 수 없어요.");
+    } finally {
+      setBoardLoading(false);
+    }
+  };
+
+  const openBoard = () => {
+    setBoardOpen(true);
+    void loadBoard();
+  };
+
+  const postScore = async () => {
+    if (submittedRef.current || submitting || hud.score <= 0) return;
+    const name = sanitizeName(playerName);
+    setPlayerName(name);
+    writeSave({ name });
+    submittedRef.current = true;
+    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitMsg("올리는 중…");
+    try {
+      const result = await submitScore({
+        data: { name, score: hud.score, stage: hud.level },
+      });
+      setSubmitMsg(result.message);
+      void loadBoard();
+    } catch {
+      submittedRef.current = false;
+      setSubmitted(false);
+      setSubmitMsg("지금은 올릴 수 없어요. 다시 눌러 봐.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const showBoardHud = overlay === "playing" || overlay === "paused";
 
   const closeSkip = () => {
@@ -226,6 +293,10 @@ export function GameView() {
               >
                 3스테이지부터
               </Button>
+              <Button variant="secondary" className="w-full" onClick={openBoard}>
+                <Trophy className="size-4" />
+                세계 랭킹
+              </Button>
             </div>
             <p className="stagger-item mt-5 text-xs leading-relaxed text-muted">
               손가락을 대고 움직여 조준, 손을 떼면 발사
@@ -277,6 +348,33 @@ export function GameView() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {overlay === "title" && boardOpen && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/70 px-6">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leaderboard-title"
+            className="w-full max-w-xs rounded-xl border border-border bg-card px-5 py-6 text-center shadow-lg"
+          >
+            <LeaderboardHeader />
+            <h2 id="leaderboard-title" className="mt-2 font-display text-2xl">
+              세계 랭킹
+            </h2>
+            <div className="mt-4">
+              <LeaderboardList
+                rows={boardRows}
+                loading={boardLoading}
+                error={boardError}
+                highlightName={playerName}
+              />
+            </div>
+            <Button variant="secondary" className="mt-5 w-full" onClick={() => setBoardOpen(false)}>
+              닫기
+            </Button>
           </div>
         </div>
       )}
@@ -345,9 +443,40 @@ export function GameView() {
             {hud.score >= hud.best && hud.score > 0 && (
               <p className="mt-2 text-sm text-accent">새 최고 기록</p>
             )}
+            {hud.score > 0 && (
+              <form
+                className="mt-5 text-left"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void postScore();
+                }}
+              >
+                <label className="text-xs text-muted" htmlFor="score-name">
+                  이름
+                </label>
+                <input
+                  id="score-name"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  maxLength={12}
+                  autoComplete="off"
+                  className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-center text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="mt-3 w-full"
+                  disabled={submitting || submitted}
+                >
+                  랭킹에 올리기
+                </Button>
+                {submitMsg && <p className="mt-2 text-center text-sm text-accent">{submitMsg}</p>}
+              </form>
+            )}
             <Button
               size="lg"
-              className="mt-6 w-full"
+              variant="secondary"
+              className="mt-3 w-full"
               onClick={() => engineRef.current?.play()}
             >
               다시 하기

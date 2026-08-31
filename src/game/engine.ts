@@ -1228,6 +1228,7 @@ export class Engine {
           }
         }
       },
+      lose: () => this.lose(),
     };
   }
 }
@@ -1246,6 +1247,7 @@ declare global {
       giveSpecial: (kind: SpecialKind) => void;
       useHelp: () => void;
       plantSpecials: () => void;
+      lose: () => void;
     };
   }
 }
