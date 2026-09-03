@@ -79,6 +79,26 @@
   line-height: 1.15;
 }
 
+.help-btn {
+  height: 2.36rem;
+  padding-inline: 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #f0a202;
+  color: #3a2200;
+  box-shadow: 0 2px 8px color-mix(in oklab, #f0a202 35%, transparent);
+}
+
+.help-btn:hover:not(:disabled) {
+  background: #ffc14a;
+}
+
+.help-btn:disabled {
+  background: color-mix(in oklab, var(--color-muted) 28%, var(--color-card));
+  color: var(--color-muted);
+  box-shadow: none;
+}
+
 .stagger-item {
   animation: overlay-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -200,6 +220,10 @@
 
 .praise-toast {
   animation: praise-pop 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.praise-toast-cheer {
+  animation-duration: 3.2s;
 }
 
 .special-hint {

@@ -198,9 +198,12 @@ export class Engine {
   private toast = "";
   private toastKey = 0;
   private toastT = 0;
+  private toastKind: "praise" | "cheer" = "praise";
   private hint = "";
   private hintKey = 0;
   private hintT = 0;
+  private pendingHint: SpecialKind | null = null;
+  private pendingHintT = 0;
   private helpAvailable = true;
   private maxCombo = 0;
   private missStreak = 0;
@@ -311,6 +314,8 @@ export class Engine {
     this.toast = "";
     this.hint = "";
     this.hintT = 0;
+    this.pendingHint = null;
+    this.pendingHintT = 0;
     this.maxCombo = 0;
     this.missStreak = 0;
     this.loadLevel(this.level);
@@ -320,6 +325,7 @@ export class Engine {
       this.announceSpecial(this.currentSpecial);
       const skipped = Array.from({ length: this.level - 1 }, (_, i) => String(i + 1)).join("·");
       this.toast = `${skipped}스테이지 보너스 +${this.score.toLocaleString()}`;
+      this.toastKind = "praise";
       this.toastKey += 1;
       this.toastT = 2.6;
       this.praise = this.toast;
@@ -361,10 +367,14 @@ export class Engine {
     const line = cheerForHelp();
     this.praise = line;
     this.toast = line;
+    this.toastKind = "cheer";
     this.toastKey += 1;
-    this.toastT = 2.2;
+    this.toastT = 3.2;
     sfxSpecial(this.currentSpecial);
-    this.announceSpecial(this.currentSpecial);
+    this.hint = "";
+    this.hintT = 0;
+    this.pendingHint = this.currentSpecial;
+    this.pendingHintT = 3;
     this.rebuildPath();
     this.hudDirty = true;
   }
@@ -407,6 +417,8 @@ export class Engine {
   }
 
   private announceSpecial(kind: SpecialKind | null): void {
+    this.pendingHint = null;
+    this.pendingHintT = 0;
     if (!kind) return;
     this.hint = hintForSpecial(kind);
     this.hintT = 3;
@@ -472,7 +484,16 @@ export class Engine {
       this.toastT -= dt;
       if (this.toastT <= 0) {
         this.toast = "";
+        this.toastKind = "praise";
         this.hudDirty = true;
+      }
+    }
+    if (this.pendingHintT > 0) {
+      this.pendingHintT -= dt;
+      if (this.pendingHintT <= 0) {
+        const kind = this.pendingHint;
+        this.pendingHint = null;
+        if (kind) this.announceSpecial(kind);
       }
     }
     if (this.hintT > 0) {
@@ -626,6 +647,7 @@ export class Engine {
     if (this.missStreak < 3) return;
     const line = teaseForMiss(this.missStreak);
     this.toast = line;
+    this.toastKind = "praise";
     this.toastKey += 1;
     this.toastT = 2.7;
     this.praise = line;
@@ -718,6 +740,7 @@ export class Engine {
         : praiseForPop(matches.length, floating.length, this.combo);
       this.praise = line;
       this.toast = line;
+      this.toastKind = "praise";
       this.toastKey += 1;
       this.toastT = 2.1;
     }
@@ -1182,6 +1205,7 @@ export class Engine {
       praise: this.praise,
       toast: this.toast,
       toastKey: this.toastKey,
+      toastKind: this.toastKind,
       helpAvailable: this.helpAvailable,
       hint: this.hint,
       hintKey: this.hintKey,

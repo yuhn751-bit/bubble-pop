@@ -15,6 +15,7 @@ export type HudState = {
   praise: string;
   toast: string;
   toastKey: number;
+  toastKind: "praise" | "cheer";
   helpAvailable: boolean;
   hint: string;
   hintKey: number;

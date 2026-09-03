@@ -21,6 +21,7 @@ const INITIAL: HudState = {
   praise: "",
   toast: "",
   toastKey: 0,
+  toastKind: "praise",
   helpAvailable: false,
   hint: "",
   hintKey: 0,
@@ -253,7 +254,10 @@ export function GameView() {
       {overlay === "playing" && hud.toast && (
         <div
           key={hud.toastKey}
-          className="praise-toast pointer-events-none absolute inset-x-0 top-24 z-10 px-4 text-center"
+          className={cn(
+            "praise-toast pointer-events-none absolute inset-x-0 top-24 z-10 px-4 text-center",
+            hud.toastKind === "cheer" && "praise-toast-cheer",
+          )}
         >
           <p className="font-display text-2xl tracking-tight text-foreground">{hud.toast}</p>
         </div>
@@ -262,14 +266,13 @@ export function GameView() {
       {overlay === "playing" && (
         <div className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 z-10">
           <Button
-            variant="secondary"
             size="sm"
-            className="h-9 px-3 text-xs font-medium"
+            className="help-btn"
             disabled={!hud.helpAvailable}
             aria-label="선배의 도움"
             onClick={() => engineRef.current?.useHelp()}
           >
-            <HandHelping className="size-3.5" />
+            <HandHelping className="size-4" />
             {hud.helpAvailable ? "선배의 도움" : "사용함"}
           </Button>
         </div>
