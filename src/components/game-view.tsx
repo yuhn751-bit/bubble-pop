@@ -3,7 +3,7 @@ import { HandHelping, Pause, Play, RotateCcw, Trophy, Volume2, VolumeX } from "l
 import { Button } from "@/components/ui/button";
 import { LeaderboardHeader, LeaderboardList } from "@/components/leaderboard-panel";
 import { Engine } from "@/game/engine";
-import { listScores, sanitizeName, submitScore, type ScoreRow } from "@/game/leaderboard";
+import { listScores, qualifyScore, sanitizeName, submitScore, type ScoreRow } from "@/game/leaderboard";
 import { loadSave, writeSave } from "@/game/save";
 import type { HudState } from "@/game/types";
 import { cn } from "@/lib/utils";
@@ -38,11 +38,14 @@ export function GameView() {
   const [boardRows, setBoardRows] = useState<ScoreRow[]>([]);
   const [boardError, setBoardError] = useState("");
   const [boardLoading, setBoardLoading] = useState(false);
-  const [playerName, setPlayerName] = useState("유수현");
+  const [playerName, setPlayerName] = useState("");
   const [submitMsg, setSubmitMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [qualify, setQualify] = useState<"idle" | "checking" | "in" | "out" | "error">("idle");
+  const [qualifyRank, setQualifyRank] = useState<number | null>(null);
   const submittedRef = useRef(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const overlay = hud.overlay;
 
   useEffect(() => {
@@ -62,7 +65,8 @@ export function GameView() {
   }, [skipOpen]);
 
   useEffect(() => {
-    setPlayerName(loadSave().name);
+    const saved = loadSave().name;
+    if (saved && saved !== "유수현") setPlayerName(saved);
   }, []);
 
   useEffect(() => {
@@ -71,8 +75,34 @@ export function GameView() {
       setSubmitting(false);
       setSubmitted(false);
       submittedRef.current = false;
+      setQualify("idle");
+      setQualifyRank(null);
+      return;
     }
-  }, [overlay]);
+    if (hud.score <= 0) {
+      setQualify("out");
+      return;
+    }
+    let alive = true;
+    setQualify("checking");
+    void qualifyScore({ data: { score: hud.score } })
+      .then((result) => {
+        if (!alive) return;
+        setQualifyRank(result.rank);
+        setQualify(result.qualifies ? "in" : "out");
+      })
+      .catch(() => {
+        if (!alive) return;
+        setQualify("error");
+      });
+    return () => {
+      alive = false;
+    };
+  }, [overlay, hud.score]);
+
+  useEffect(() => {
+    if (qualify === "in" && !submitted) nameInputRef.current?.focus();
+  }, [qualify, submitted]);
 
   const loadBoard = async () => {
     setBoardLoading(true);
@@ -362,7 +392,7 @@ export function GameView() {
           >
             <LeaderboardHeader />
             <h2 id="leaderboard-title" className="mt-2 font-display text-2xl">
-              세계 랭킹
+              세계 랭킹 TOP 10
             </h2>
             <div className="mt-4">
               <LeaderboardList
@@ -407,7 +437,11 @@ export function GameView() {
             <p className="text-xs font-medium tracking-widest text-muted">
               STAGE {hud.level}
             </p>
-            <h2 className="mt-2 font-display text-3xl">스테이지 클리어</h2>
+            <h2 className="overlay-title mt-2 font-display text-3xl">
+              스테이지
+              <br />
+              클리어
+            </h2>
             {hud.praise && (
               <p className="mt-3 font-display text-xl text-foreground">{hud.praise}</p>
             )}
@@ -443,40 +477,51 @@ export function GameView() {
             {hud.score >= hud.best && hud.score > 0 && (
               <p className="mt-2 text-sm text-accent">새 최고 기록</p>
             )}
-            {hud.score > 0 && (
+            {qualify === "checking" && (
+              <p className="mt-4 text-sm text-muted">랭킹 확인 중…</p>
+            )}
+            {qualify === "in" && !submitted && (
               <form
-                className="mt-5 text-left"
+                className="mt-5"
                 onSubmit={(e) => {
                   e.preventDefault();
                   void postScore();
                 }}
               >
-                <label className="text-xs text-muted" htmlFor="score-name">
-                  이름
-                </label>
+                <p className="font-display text-lg text-accent">
+                  {qualifyRank ? `${qualifyRank}위 진입!` : "TOP 10 진입!"}
+                </p>
+                <p className="mt-1 text-xs tracking-widest text-muted">ENTER NAME</p>
                 <input
+                  ref={nameInputRef}
                   id="score-name"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   maxLength={12}
+                  placeholder="닉네임"
                   autoComplete="off"
-                  className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-center text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="닉네임"
+                  className="mt-3 h-11 w-full rounded-md border border-border bg-background px-3 text-center font-display text-lg tracking-wide text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="mt-3 w-full"
-                  disabled={submitting || submitted}
-                >
-                  랭킹에 올리기
+                <Button type="submit" size="lg" className="mt-3 w-full" disabled={submitting}>
+                  등록
                 </Button>
                 {submitMsg && <p className="mt-2 text-center text-sm text-accent">{submitMsg}</p>}
               </form>
             )}
+            {submitted && submitMsg && (
+              <p className="mt-4 font-display text-lg text-accent">{submitMsg}</p>
+            )}
+            {qualify === "out" && hud.score > 0 && (
+              <p className="mt-4 text-sm text-muted">세계 10위 밖이에요. 다시 도전해 봐.</p>
+            )}
+            {qualify === "error" && (
+              <p className="mt-4 text-sm text-muted">지금은 랭킹을 확인할 수 없어요.</p>
+            )}
             <Button
               size="lg"
               variant="secondary"
-              className="mt-3 w-full"
+              className="mt-5 w-full"
               onClick={() => engineRef.current?.play()}
             >
               다시 하기

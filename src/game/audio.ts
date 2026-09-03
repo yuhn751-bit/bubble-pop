@@ -208,6 +208,18 @@ export function sfxSpecial(kind: SpecialKind): void {
     tone(140, 0.12, "triangle", 0.08, -40);
     return;
   }
+  if (kind === "virus") {
+    noise(0.14, 0.18, 360, 0.55);
+    tone(160, 0.16, "sawtooth", 0.1, 40);
+    tone(90, 0.12, "square", 0.08, -20);
+    return;
+  }
+  if (kind === "curse") {
+    tone(220, 0.12, "triangle", 0.12, -80);
+    tone(130, 0.18, "sine", 0.14, -40);
+    noise(0.1, 0.12, 240, 0.5);
+    return;
+  }
   tone(523, 0.08, "triangle", 0.12, 80);
   tone(659, 0.1, "sine", 0.1, 90);
   tone(784, 0.14, "triangle", 0.1, 120);

@@ -65,7 +65,7 @@ export function LeaderboardHeader() {
   return (
     <p className="inline-flex items-center gap-2 text-xs font-medium tracking-widest text-muted">
       <Trophy className="size-3.5" />
-      WORLD RANK
+      TOP 10
     </p>
   );
 }

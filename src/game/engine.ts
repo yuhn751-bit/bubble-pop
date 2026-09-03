@@ -49,6 +49,7 @@ import {
   presentPlayColors,
   pickSpecial,
   pickGoodSpecial,
+  pickBadSpecial,
   hintForSpecial,
   SPECIAL_CHANCE,
   SPECIAL_KINDS,
@@ -676,6 +677,7 @@ export class Engine {
     heart: boolean;
     hourglass: boolean;
     anchor: boolean;
+    curse: boolean;
     kinds: SpecialKind[];
   }): void {
     const matches = result.cells;
@@ -718,14 +720,6 @@ export class Engine {
       this.toast = line;
       this.toastKey += 1;
       this.toastT = 2.1;
-      this.floats.push({
-        x: centroid.x,
-        y: centroid.y - this.layout.r * 1.15,
-        text: line,
-        age: 0,
-        life: 1.15,
-        kind: "praise",
-      });
     }
     if (this.combo > this.maxCombo) this.maxCombo = this.combo;
     this.floats.push({
@@ -831,6 +825,7 @@ export class Engine {
     }
     if (this.level > 2) this.shotsLeft -= 1;
     if (result.hourglass) this.shotsLeft = Math.max(0, this.shotsLeft - 2);
+    if (result.curse) this.nextSpecial = pickBadSpecial(() => Math.random());
     if (this.crossedDanger()) {
       this.lose();
       return;

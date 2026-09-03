@@ -408,6 +408,46 @@ function drawSpecialMark(
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
+  } else if (special === "virus") {
+    ctx.fillStyle = "#6adf7a";
+    ctx.strokeStyle = "rgba(10,30,14,0.6)";
+    ctx.lineWidth = Math.max(1.8, r * 0.07);
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.22, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = "#b8ffc2";
+    ctx.lineWidth = Math.max(2, r * 0.1);
+    for (let i = 0; i < 4; i++) {
+      const a = (i * Math.PI) / 2 + Math.PI / 4;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r * 0.2, Math.sin(a) * r * 0.2);
+      ctx.lineTo(Math.cos(a) * r * 0.46, Math.sin(a) * r * 0.46);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5, r * 0.08, 0, TAU);
+      ctx.fill();
+    }
+  } else if (special === "curse") {
+    ctx.fillStyle = "#7a4dff";
+    ctx.strokeStyle = "rgba(255,255,255,0.7)";
+    ctx.lineWidth = Math.max(1.8, r * 0.07);
+    ctx.beginPath();
+    ctx.arc(0, -r * 0.08, r * 0.28, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#120818";
+    ctx.beginPath();
+    ctx.arc(-r * 0.1, -r * 0.12, r * 0.07, 0, TAU);
+    ctx.arc(r * 0.1, -r * 0.12, r * 0.07, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = "#c9b6ff";
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.16, r * 0.22);
+    ctx.lineTo(0, r * 0.48);
+    ctx.lineTo(r * 0.16, r * 0.22);
+    ctx.closePath();
+    ctx.fill();
   }
   ctx.restore();
 }

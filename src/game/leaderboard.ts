@@ -11,17 +11,32 @@ export type ScoreRow = {
 export type SubmitResult = {
   ok: boolean;
   rank: number | null;
+  qualifies: boolean;
   message: string;
+};
+
+export type QualifyResult = {
+  qualifies: boolean;
+  rank: number | null;
 };
 
 const NAME_MAX = 12;
 const SCORE_MAX = 10_000_000;
-const LIST_LIMIT = 20;
+export const LIST_LIMIT = 10;
 
 export function sanitizeName(raw: string): string {
   const cleaned = raw.replace(/[\u0000-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim();
   const cut = [...cleaned].slice(0, NAME_MAX).join("");
   return cut || "유수현";
+}
+
+async function rankForScore(score: number): Promise<number> {
+  const { getSql } = await import("@/lib/db");
+  const sql = await getSql();
+  const above = await sql<{ n: number }>`
+    select count(*)::int as n from scores where score > ${score}
+  `;
+  return (above[0]?.n ?? 0) + 1;
 }
 
 export const listScores = createServerFn({ method: "GET" }).handler(async (): Promise<ScoreRow[]> => {
@@ -31,7 +46,7 @@ export const listScores = createServerFn({ method: "GET" }).handler(async (): Pr
     select name, score, stage
     from scores
     order by score desc, created_at asc
-    limit ${LIST_LIMIT}
+    limit 10
   `;
   return rows.map((row, i) => ({
     rank: i + 1,
@@ -40,6 +55,14 @@ export const listScores = createServerFn({ method: "GET" }).handler(async (): Pr
     stage: Number(row.stage),
   }));
 });
+
+export const qualifyScore = createServerFn({ method: "POST" })
+  .validator(z.object({ score: z.number().int().min(0).max(SCORE_MAX) }))
+  .handler(async ({ data }): Promise<QualifyResult> => {
+    if (data.score <= 0) return { qualifies: false, rank: null };
+    const rank = await rankForScore(data.score);
+    return { qualifies: rank <= LIST_LIMIT, rank };
+  });
 
 export const submitScore = createServerFn({ method: "POST" })
   .validator(
@@ -53,19 +76,25 @@ export const submitScore = createServerFn({ method: "POST" })
     const name = sanitizeName(data.name);
     const score = data.score;
     const stage = data.stage;
+    const rank = await rankForScore(score);
+    if (rank > LIST_LIMIT) {
+      return {
+        ok: false,
+        rank,
+        qualifies: false,
+        message: "아쉽지만 10위 밖이에요.",
+      };
+    }
     const { getSql } = await import("@/lib/db");
     const sql = await getSql();
     await sql`
       insert into scores (name, score, stage)
       values (${name}, ${score}, ${stage})
     `;
-    const above = await sql<{ n: number }>`
-      select count(*)::int as n from scores where score > ${score}
-    `;
-    const rank = (above[0]?.n ?? 0) + 1;
     return {
       ok: true,
       rank,
-      message: rank <= LIST_LIMIT ? `세계 랭킹 ${rank}위!` : `${rank}위예요. 조금 더 높이!`,
+      qualifies: true,
+      message: `세계 랭킹 ${rank}위 등록!`,
     };
   });

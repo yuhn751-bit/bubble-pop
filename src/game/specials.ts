@@ -19,7 +19,9 @@ export type SpecialKind =
   | "lock"
   | "ink"
   | "hourglass"
-  | "anchor";
+  | "anchor"
+  | "virus"
+  | "curse";
 
 export type SpecialGrid = (SpecialKind | null)[][];
 
@@ -37,7 +39,7 @@ export const GOOD_SPECIALS: SpecialKind[] = [
   "magnet",
 ];
 
-export const BAD_SPECIALS: SpecialKind[] = ["lock", "ink", "hourglass", "anchor"];
+export const BAD_SPECIALS: SpecialKind[] = ["lock", "ink", "hourglass", "anchor", "virus", "curse"];
 
 export const SPECIAL_KINDS: SpecialKind[] = [...GOOD_SPECIALS, ...BAD_SPECIALS];
 
@@ -55,6 +57,8 @@ export const SPECIAL_HINTS: Record<SpecialKind, string> = {
   ink: "먹물 · 주변 색깔이 섞여요",
   hourglass: "모래시계 · 천장 카운트가 줄어요",
   anchor: "닻 · 천장이 한 칸 내려와요",
+  virus: "바이러스 · 주변 색이 마구 바뀌어요",
+  curse: "저주 · 다음 구슬이 불리한 특수구슬이 돼요",
 };
 
 export function hintForSpecial(kind: SpecialKind): string {
@@ -77,6 +81,10 @@ export function pickSpecial(rng: () => number, opts?: { allowBad?: boolean }): S
     return BAD_SPECIALS[Math.floor(rng() * BAD_SPECIALS.length) % BAD_SPECIALS.length];
   }
   return pickGoodSpecial(rng);
+}
+
+export function pickBadSpecial(rng: () => number): SpecialKind {
+  return BAD_SPECIALS[Math.floor(rng() * BAD_SPECIALS.length) % BAD_SPECIALS.length];
 }
 
 export function pickGoodSpecial(rng: () => number): SpecialKind {
@@ -223,6 +231,20 @@ function applyInk(grid: Grid, specials: SpecialGrid, cell: Cell): void {
   }
 }
 
+function applyVirus(grid: Grid, specials: SpecialGrid, cell: Cell): void {
+  const palette = presentPlayColors(grid, specials);
+  const pool = palette.length ? palette : [0, 1, 2];
+  for (let row = 0; row < grid.length; row++) {
+    for (let col = 0; col < grid[row].length; col++) {
+      if (grid[row][col] === null) continue;
+      if (hexDist(cell.row, cell.col, row, col) > 2) continue;
+      const sp = specials[row][col];
+      if (sp === "rainbow" || sp === "lock") continue;
+      grid[row][col] = pool[Math.floor(Math.random() * pool.length) % pool.length];
+    }
+  }
+}
+
 function unlockAdjacentLocks(specials: SpecialGrid, keys: Set<string>): void {
   for (const key of [...keys]) {
     const comma = key.indexOf(",");
@@ -259,6 +281,7 @@ export type PopResult = {
   heart: boolean;
   hourglass: boolean;
   anchor: boolean;
+  curse: boolean;
   kinds: SpecialKind[];
 };
 
@@ -290,6 +313,15 @@ export function collectPops(
 
   const placedGlass = shotSpecial === "hourglass" || specials[start.row][start.col] === "hourglass";
   if (placedGlass) add(start.row, start.col);
+
+  const placedVirus = shotSpecial === "virus" || specials[start.row][start.col] === "virus";
+  if (placedVirus) {
+    add(start.row, start.col);
+    applyVirus(grid, specials, start);
+  }
+
+  const placedCurse = shotSpecial === "curse" || specials[start.row][start.col] === "curse";
+  if (placedCurse) add(start.row, start.col);
 
   const rainbowColor =
     shotSpecial === "rainbow" ? hitColor ?? inferAdjacentColor(grid, specials, start) : undefined;
@@ -341,6 +373,7 @@ export function collectPops(
   let hourglass = placedGlass;
   let anchor = shotSpecial === "anchor" || specials[start.row][start.col] === "anchor";
   if (anchor) add(start.row, start.col);
+  let curse = placedCurse;
 
   const processed = new Set<string>();
   let grow = true;
@@ -376,8 +409,10 @@ export function collectPops(
         applyInk(grid, specials, { row, col });
       } else if (sp === "hourglass") {
         hourglass = true;
-      } else if (sp === "anchor") {
-        anchor = true;
+      } else if (sp === "virus") {
+        applyVirus(grid, specials, { row, col });
+      } else if (sp === "curse") {
+        curse = true;
       }
     }
   }
@@ -395,7 +430,7 @@ export function collectPops(
     if (sp) kinds.push(sp);
   }
   if (shotSpecial && !kinds.includes(shotSpecial)) kinds.unshift(shotSpecial);
-  return { cells, heart, hourglass, anchor, kinds };
+  return { cells, heart, hourglass, anchor, curse, kinds };
 }
 
 export function presentPlayColors(grid: Grid, specials: SpecialGrid): number[] {

@@ -443,6 +443,16 @@ const SPECIAL_ANCHOR = [
   "무거워졌어 유수현!",
   "수현아 닻은 조심해!",
 ];
+const SPECIAL_VIRUS = [
+  "바이러스다 수현아, 색이 엉망이야!",
+  "퍼졌다 수현아, 다시 봐!",
+  "유수현, 주변이 뒤섞였어!",
+];
+const SPECIAL_CURSE = [
+  "저주다 수현아, 다음 구슬 조심해!",
+  "수현아 다음 알이 험해졌어!",
+  "저주 맞았다 유수현!",
+];
 
 const HELP_CHEER = [
   "수현아 선배가 도와줄게!",
@@ -488,7 +498,11 @@ export function praiseForSpecial(kind: SpecialKind): string {
                           ? SPECIAL_INK
                           : kind === "hourglass"
                             ? SPECIAL_HOURGLASS
-                            : SPECIAL_ANCHOR;
+                            : kind === "anchor"
+                              ? SPECIAL_ANCHOR
+                              : kind === "virus"
+                                ? SPECIAL_VIRUS
+                                : SPECIAL_CURSE;
   const picked = pickLine(pool, lastPop);
   lastPop = picked.next;
   return picked.line;
