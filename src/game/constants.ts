@@ -34,6 +34,7 @@ export const BUBBLE_COLORS = [
   { base: "#2d86e8", dark: "#0c4a96", light: "#9cc8ff", glow: "#5aa8ff" },
   { base: "#c45ed8", dark: "#6c2080", light: "#ebb0f5", glow: "#d980ea" },
   { base: "#1fb8ae", dark: "#0b6a64", light: "#8aeee6", glow: "#4ad4ca" },
+  { base: "#ff6b2c", dark: "#9a2e08", light: "#ffb48a", glow: "#ff8a4a" },
 ] as const;
 
 export type BubblePalette = (typeof BUBBLE_COLORS)[number];
