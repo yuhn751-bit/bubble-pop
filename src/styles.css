@@ -127,11 +127,35 @@
   animation-delay: 320ms;
 }
 
+.title-screen {
+  background: #141018;
+}
+
+.title-art {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, #070b14 28%, transparent) 0%,
+      color-mix(in oklab, #070b14 12%, transparent) 38%,
+      color-mix(in oklab, #070b14 62%, transparent) 100%
+    ),
+    url("/suhyeon-title.jpg") center 22% / cover no-repeat;
+}
+
 .title-card {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--color-card) 78%, white) 0%, var(--color-card) 42%, color-mix(in oklab, var(--color-card) 88%, black) 100%);
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-card) 72%, white) 0%,
+      color-mix(in oklab, var(--color-card) 82%, transparent) 48%,
+      color-mix(in oklab, var(--color-card) 90%, black) 100%
+    );
+  backdrop-filter: blur(10px);
   box-shadow:
     0 24px 60px color-mix(in oklab, black 45%, transparent),
     inset 0 1px 0 color-mix(in oklab, white 14%, transparent);
@@ -193,6 +217,10 @@
 .title-bubble:nth-child(6) {
   background: radial-gradient(circle at 32% 28%, #8aeee6 0%, #1fb8ae 46%, #0b6a64 100%);
   animation-delay: 600ms;
+}
+.title-bubble:nth-child(7) {
+  background: radial-gradient(circle at 32% 28%, #ffb48a 0%, #ff6b2c 46%, #9a2e08 100%);
+  animation-delay: 720ms;
 }
 
 @keyframes title-bob {
