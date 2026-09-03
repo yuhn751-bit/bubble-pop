@@ -22,7 +22,7 @@ export function buildLevel(level: number): LevelSpec {
   if (level <= 1) return buildBonusLevel();
 
   const rng = mulberry32(((Math.random() * 0xffffffff) ^ (level * 7919 + 17)) >>> 0);
-  const colorCount = level <= 2 ? 3 : level <= 5 ? 4 : level <= 9 ? 5 : 6;
+  const colorCount = level <= 2 ? 3 : level <= 5 ? 4 : level <= 8 ? 5 : level <= 12 ? 6 : 7;
   const baseFill = Math.min(8, 4 + Math.floor((level - 1) / 2));
   const fillRows = Math.max(3, Math.min(8, baseFill + (rng() < 0.35 ? 1 : 0) - (rng() < 0.2 ? 1 : 0)));
   const dropEvery = Math.max(7, 13 - Math.floor((level - 1) / 2));
