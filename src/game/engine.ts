@@ -181,7 +181,7 @@ export class Engine {
   private best = 0;
   private level = 1;
   private shotsLeft = 14;
-  private dropEvery = 14;
+  private dropEvery = 13;
   private ceilingDrop = 0;
   private ceilingFrom = 0;
   private ceilingTo = 0;

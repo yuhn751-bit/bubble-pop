@@ -25,7 +25,7 @@ export function buildLevel(level: number): LevelSpec {
   const colorCount = level <= 2 ? 3 : level <= 5 ? 4 : level <= 9 ? 5 : 6;
   const baseFill = Math.min(8, 4 + Math.floor((level - 1) / 2));
   const fillRows = Math.max(3, Math.min(8, baseFill + (rng() < 0.35 ? 1 : 0) - (rng() < 0.2 ? 1 : 0)));
-  const dropEvery = Math.max(8, 14 - Math.floor((level - 1) / 2));
+  const dropEvery = Math.max(7, 13 - Math.floor((level - 1) / 2));
   const grid = makeGrid();
   const specials = makeSpecials(MAX_ROWS, colCount);
   const pattern = Math.floor(rng() * 4);
@@ -82,7 +82,7 @@ function buildBonusLevel(): LevelSpec {
     grid,
     specials,
     colorCount: 6,
-    dropEvery: 14,
+    dropEvery: 13,
     starterColor: accent,
     starterSpecial: "star",
   };
