@@ -291,20 +291,20 @@ export function GameView() {
               <span className="title-bubble" />
               <span className="title-bubble" />
             </div>
-            <p className="stagger-item mt-3 text-xs font-medium tracking-widest text-muted">
+            <p className="title-copy stagger-item mt-3 text-xs font-medium tracking-widest">
               FOR SUHYEON
             </p>
             <h1 className="title-logo stagger-item mt-1 font-display text-4xl leading-tight tracking-tight text-foreground">
               버블팝
             </h1>
-            <p className="stagger-item mt-1 text-sm text-accent">수현이를 위한 버블 퍼즐</p>
-            <p className="stagger-item mt-3 text-xs leading-relaxed text-muted">
+            <p className="title-copy stagger-item mt-1 text-sm font-medium">수현이를 위한 버블 퍼즐</p>
+            <p className="title-copy stagger-item mt-3 text-xs leading-relaxed">
               같은 색 세 개를 모으면 팡!
               <br />
               특수 구슬과 선배의 도움도 있어요.
             </p>
             {hud.best > 0 && (
-              <p className="stagger-item mt-3 inline-flex items-center gap-2 rounded-full border border-border bg-background/25 px-3 py-1 text-xs text-accent">
+              <p className="title-copy stagger-item mt-3 inline-flex items-center gap-2 rounded-full border border-border bg-background/40 px-3 py-1 text-xs">
                 <Trophy className="size-3.5" />
                 최고 {hud.best.toLocaleString()}
               </p>
@@ -333,7 +333,7 @@ export function GameView() {
                 세계 랭킹
               </Button>
             </div>
-            <p className="stagger-item mt-3 text-xs leading-relaxed text-muted">
+            <p className="title-copy stagger-item mt-3 text-xs leading-relaxed">
               손가락을 대고 움직여 조준, 손을 떼면 발사
               <br />
               키보드 ← → 조준, 스페이스 발사

@@ -166,8 +166,16 @@
 
 .title-logo {
   text-shadow:
-    0 8px 28px color-mix(in oklab, #5aa8ff 35%, transparent),
-    0 2px 0 color-mix(in oklab, black 35%, transparent);
+    0 1px 2px color-mix(in oklab, black 80%, transparent),
+    0 0 12px color-mix(in oklab, black 55%, transparent),
+    0 8px 28px color-mix(in oklab, #5aa8ff 35%, transparent);
+}
+
+.title-copy {
+  color: #e8eef6;
+  text-shadow:
+    0 1px 2px color-mix(in oklab, black 85%, transparent),
+    0 0 10px color-mix(in oklab, black 60%, transparent);
 }
 
 .title-bubbles {
