@@ -138,27 +138,21 @@
   background:
     linear-gradient(
       180deg,
-      color-mix(in oklab, #070b14 28%, transparent) 0%,
-      color-mix(in oklab, #070b14 12%, transparent) 38%,
-      color-mix(in oklab, #070b14 62%, transparent) 100%
+      color-mix(in oklab, #070b14 8%, transparent) 0%,
+      color-mix(in oklab, #070b14 4%, transparent) 45%,
+      color-mix(in oklab, #070b14 28%, transparent) 100%
     ),
-    url("/suhyeon-title.jpg") center 22% / cover no-repeat;
+    url("/suhyeon-title.jpg") center 18% / cover no-repeat;
 }
 
 .title-card {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--color-card) 72%, white) 0%,
-      color-mix(in oklab, var(--color-card) 82%, transparent) 48%,
-      color-mix(in oklab, var(--color-card) 90%, black) 100%
-    );
-  backdrop-filter: blur(10px);
+  background: color-mix(in oklab, var(--color-card) 22%, transparent);
+  backdrop-filter: blur(4px);
   box-shadow:
-    0 24px 60px color-mix(in oklab, black 45%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 14%, transparent);
+    0 16px 40px color-mix(in oklab, black 18%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 22%, transparent);
 }
 
 .title-card::before {
