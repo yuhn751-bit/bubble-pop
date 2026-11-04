@@ -3,10 +3,23 @@ import { HandHelping, Pause, Play, RotateCcw, Trophy, Volume2, VolumeX } from "l
 import { Button } from "@/components/ui/button";
 import { LeaderboardHeader, LeaderboardList } from "@/components/leaderboard-panel";
 import { Engine } from "@/game/engine";
-import { listScores, qualifyScore, sanitizeName, submitScore, type ScoreRow } from "@/game/leaderboard";
+import {
+  listScores,
+  qualifyScore,
+  sanitizeName,
+  submitScore,
+  type ScoreRow,
+} from "@/game/leaderboard";
 import { loadSave, writeSave } from "@/game/save";
 import type { HudState } from "@/game/types";
 import { cn } from "@/lib/utils";
+
+/** Desktop and Android shells set this so the score list stays on the device. */
+const OFFLINE_SHELL = import.meta.env.VITE_OFFLINE_SHELL === "1";
+const RANKING_NAME = OFFLINE_SHELL ? "이 기기의 랭킹" : "세계 랭킹";
+const RANKING_MISS = OFFLINE_SHELL
+  ? "이 기기 10위 밖이에요. 다시 도전해 봐."
+  : "세계 10위 밖이에요. 다시 도전해 봐.";
 
 const INITIAL: HudState = {
   score: 0,
@@ -190,13 +203,17 @@ export function GameView() {
                   <Volume2
                     className={cn(
                       "absolute inset-0 transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)]",
-                      hud.muted ? "scale-[0.25] opacity-0 blur-[4px]" : "scale-100 opacity-100 blur-none",
+                      hud.muted
+                        ? "scale-[0.25] opacity-0 blur-[4px]"
+                        : "scale-100 opacity-100 blur-none",
                     )}
                   />
                   <VolumeX
                     className={cn(
                       "absolute inset-0 transition-[opacity,transform,filter] duration-300 ease-[cubic-bezier(0.2,0,0,1)]",
-                      hud.muted ? "scale-100 opacity-100 blur-none" : "scale-[0.25] opacity-0 blur-[4px]",
+                      hud.muted
+                        ? "scale-100 opacity-100 blur-none"
+                        : "scale-[0.25] opacity-0 blur-[4px]",
                     )}
                   />
                 </span>
@@ -297,7 +314,9 @@ export function GameView() {
             <h1 className="title-logo stagger-item mt-1 font-display text-4xl leading-tight tracking-tight text-foreground">
               버블팝
             </h1>
-            <p className="title-copy stagger-item mt-1 text-sm font-medium">수현이를 위한 버블 퍼즐</p>
+            <p className="title-copy stagger-item mt-1 text-sm font-medium">
+              수현이를 위한 버블 퍼즐
+            </p>
             <p className="title-copy stagger-item mt-3 text-xs leading-relaxed">
               같은 색 세 개를 모으면 팡!
               <br />
@@ -330,7 +349,7 @@ export function GameView() {
               </Button>
               <Button variant="secondary" className="w-full" onClick={openBoard}>
                 <Trophy className="size-4" />
-                세계 랭킹
+                {RANKING_NAME}
               </Button>
             </div>
             <p className="title-copy stagger-item mt-3 text-xs leading-relaxed">
@@ -397,7 +416,7 @@ export function GameView() {
           >
             <LeaderboardHeader />
             <h2 id="leaderboard-title" className="mt-2 font-display text-2xl">
-              세계 랭킹 TOP 10
+              {RANKING_NAME} TOP 10
             </h2>
             <div className="mt-4">
               <LeaderboardList
@@ -439,9 +458,7 @@ export function GameView() {
       {overlay === "clear" && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 px-6">
           <div className="w-full max-w-xs rounded-xl border border-border bg-card px-6 py-7 text-center">
-            <p className="text-xs font-medium tracking-widest text-muted">
-              STAGE {hud.level}
-            </p>
+            <p className="text-xs font-medium tracking-widest text-muted">STAGE {hud.level}</p>
             <h2 className="overlay-title mt-2 font-display text-3xl">
               스테이지
               <br />
@@ -472,9 +489,7 @@ export function GameView() {
             {hud.praise && (
               <p className="mt-3 font-display text-xl text-foreground">{hud.praise}</p>
             )}
-            <p className="mt-3 tabular-nums text-foreground">
-              {hud.score.toLocaleString()}
-            </p>
+            <p className="mt-3 tabular-nums text-foreground">{hud.score.toLocaleString()}</p>
             <p className="mt-1 text-sm text-muted">
               스테이지 {hud.level}
               {hud.best >= hud.score && hud.best > 0 ? ` · 최고 ${hud.best.toLocaleString()}` : ""}
@@ -482,9 +497,7 @@ export function GameView() {
             {hud.score >= hud.best && hud.score > 0 && (
               <p className="mt-2 text-sm text-accent">새 최고 기록</p>
             )}
-            {qualify === "checking" && (
-              <p className="mt-4 text-sm text-muted">랭킹 확인 중…</p>
-            )}
+            {qualify === "checking" && <p className="mt-4 text-sm text-muted">랭킹 확인 중…</p>}
             {qualify === "in" && !submitted && (
               <form
                 className="mt-5"
@@ -518,7 +531,7 @@ export function GameView() {
               <p className="mt-4 font-display text-lg text-accent">{submitMsg}</p>
             )}
             {qualify === "out" && hud.score > 0 && (
-              <p className="mt-4 text-sm text-muted">세계 10위 밖이에요. 다시 도전해 봐.</p>
+              <p className="mt-4 text-sm text-muted">{RANKING_MISS}</p>
             )}
             {qualify === "error" && (
               <p className="mt-4 text-sm text-muted">지금은 랭킹을 확인할 수 없어요.</p>

@@ -1,0 +1,43 @@
+appId: com.bubblepop.game
+productName: 버블팝
+executableName: BubblePop
+copyright: Bubble Pop
+electronVersion: 45.2.2
+npmRebuild: false
+nodeGypRebuild: false
+asar: true
+directories:
+  output: release
+  buildResources: electron/assets
+files:
+  - "!**/*"
+  - electron/**/*
+  - shell/dist/**/*
+  - package.json
+extraMetadata:
+  main: electron/main.cjs
+  name: bubble-pop
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+    - target: nsis
+      arch:
+        - x64
+  icon: electron/assets/icon.ico
+  signAndEditExecutable: true
+portable:
+  artifactName: BubblePop-portable-${version}.${ext}
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 버블팝
+  uninstallDisplayName: 버블팝
+  artifactName: BubblePop-setup-${version}.${ext}
+  installerLanguages:
+    - ko_KR
+    - en_US
