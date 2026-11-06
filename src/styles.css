@@ -142,7 +142,7 @@
       color-mix(in oklab, #070b14 4%, transparent) 45%,
       color-mix(in oklab, #070b14 28%, transparent) 100%
     ),
-    url("/surim-title.jpg") center 18% / cover no-repeat;
+    url("/surim-title.jpg") 72% center / cover no-repeat;
 }
 
 .title-card {
