@@ -1,14 +1,19 @@
 {
   "name": "app-builder-workspace",
+  "version": "1.0.1",
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "main": "electron/main.cjs",
   "overrides": {
     "nf3": "0.3.17"
   },
   "scripts": {
     "dev": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
     "build": "node scripts/with-app-env.mjs vite build && npm run db:migrate",
+    "build:shell": "vite build --config vite.shell.config.ts",
+    "build:win": "npm run build:shell && npm --prefix packaging run build:win",
+    "build:android": "npm run build:shell && npm --prefix packaging run build:android",
     "db:migrate": "node scripts/migrate.mjs",
     "build:dev": "node scripts/with-app-env.mjs vite build --mode development",
     "preview": "node scripts/with-app-env.mjs vite preview",

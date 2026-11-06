@@ -1,0 +1,18 @@
+{
+  "name": "bubble-pop-packaging",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Electron and Capacitor toolchains for Bubble Pop. Not used by the Vercel web build.",
+  "scripts": {
+    "build:win": "electron-builder --projectDir .. --config ../electron-builder.yml --win portable nsis --publish never",
+    "sync": "node sync-www.mjs && cap sync android",
+    "build:android": "node sync-www.mjs && cap sync android && cd android && ./gradlew assembleRelease --no-daemon"
+  },
+  "devDependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "electron": "45.2.2",
+    "electron-builder": "26.18.0"
+  }
+}

@@ -1,0 +1,252 @@
+name: Native builds
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows exe
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            packaging/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install packaging tools
+        run: npm ci --prefix packaging
+
+      - name: Build offline shell
+        run: npm run build:shell
+
+      - name: Check the shell is offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R -q "fonts.googleapis.com" shell/dist; then
+            echo "shell still loads Google Fonts"
+            exit 1
+          fi
+          if grep -R -q "vercel.app" shell/dist; then
+            echo "shell still points at the Vercel site"
+            exit 1
+          fi
+          if ! grep -R -q "bubbleShell" shell/dist; then
+            echo "offline shell entry was not bundled"
+            exit 1
+          fi
+          if ! grep -R -q "강수림" shell/dist; then
+            echo "packaged shell is missing the 수림 flavor"
+            exit 1
+          fi
+          if grep -R -q "FOR SUHYEON" shell/dist; then
+            echo "packaged shell still has the website dedication"
+            exit 1
+          fi
+          if ! grep -q 'PLAYER_NAME = "유수현"' src/game/praise.ts; then
+            echo "website praise copy was changed"
+            exit 1
+          fi
+          if grep -q "강수림" src/game/praise.ts src/components/game-view.tsx src/styles.css README.md; then
+            echo "website sources must stay 유수현"
+            exit 1
+          fi
+          test -f public/suhyeon-title.jpg
+          test -f shell/dist/index.html
+          test -f shell/dist/surim-title.jpg
+          test ! -f shell/dist/suhyeon-title.jpg
+
+      - name: Use the git tag as the app version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          npm pkg set "version=$version"
+
+      - name: Build portable exe and installer
+        run: npm --prefix packaging run build:win
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bubble-pop-windows
+          if-no-files-found: error
+          path: |
+            release/*.exe
+
+  android:
+    name: Android apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            packaging/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Install packaging tools
+        run: npm ci --prefix packaging
+
+      - name: Build offline shell
+        run: npm run build:shell
+
+      - name: Check the shell is offline
+        run: |
+          set -euo pipefail
+          if grep -R -q "fonts.googleapis.com" shell/dist; then
+            echo "shell still loads Google Fonts"
+            exit 1
+          fi
+          if grep -R -q "vercel.app" shell/dist; then
+            echo "shell still points at the Vercel site"
+            exit 1
+          fi
+          if ! grep -R -q "bubbleShell" shell/dist; then
+            echo "offline shell entry was not bundled"
+            exit 1
+          fi
+          if ! grep -R -q "강수림" shell/dist; then
+            echo "packaged shell is missing the 수림 flavor"
+            exit 1
+          fi
+          if grep -R -q "FOR SUHYEON" shell/dist; then
+            echo "packaged shell still has the website dedication"
+            exit 1
+          fi
+          if ! grep -q 'PLAYER_NAME = "유수현"' src/game/praise.ts; then
+            echo "website praise copy was changed"
+            exit 1
+          fi
+          if grep -q "강수림" src/game/praise.ts src/components/game-view.tsx src/styles.css README.md; then
+            echo "website sources must stay 유수현"
+            exit 1
+          fi
+          test -f public/suhyeon-title.jpg
+          test -f shell/dist/index.html
+          test -f shell/dist/surim-title.jpg
+          test ! -f shell/dist/suhyeon-title.jpg
+
+      - name: Resolve app version
+        id: ver
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          else
+            version="1.0.1"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build signed release APK
+        env:
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+          APP_VERSION_CODE: ${{ steps.ver.outputs.code }}
+        run: npm --prefix packaging run build:android
+
+      - name: Rename APK
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          apk="$(find packaging/android/app/build/outputs/apk/release -name '*.apk' ! -name '*unsigned*' | head -n 1)"
+          test -n "$apk"
+          cp "$apk" "release/BubblePop-${GITHUB_REF_NAME#v}.apk"
+          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then
+            mv "release/BubblePop-${GITHUB_REF_NAME#v}.apk" release/BubblePop.apk
+          fi
+          ls -lh release
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bubble-pop-android
+          if-no-files-found: error
+          path: release/*.apk
+
+  release:
+    name: Attach GitHub Release
+    needs: [windows, android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List files
+        run: find artifacts -type f -print
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.apk
+          body: |
+            버블팝 / Bubble Pop offline builds. The installed app does not use the website.
+
+            ## Windows
+            - `BubblePop-portable-*.exe` — double-click, no installer.
+            - `BubblePop-setup-*.exe` — installs a desktop shortcut named 버블팝.
+
+            Windows SmartScreen may say the app isn't recognized because it is unsigned.
+            Choose **More info**, then **Run anyway**.
+
+            ## Android
+            - `BubblePop-*.apk` — sideload. The launcher name is 버블팝. The screen stays portrait.
+
+            Allow installs from your browser or Files app ("Install unknown apps"), then open the apk.
+            This is a self-signed build, not a Play Store download. Installing a newer apk over the old one works because each release uses the same sideload key.
+
+            Scores in the installed app stay on that device. Gameplay does not need a network connection.
