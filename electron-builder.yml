@@ -6,6 +6,11 @@ electronVersion: 45.2.2
 npmRebuild: false
 nodeGypRebuild: false
 asar: true
+compression: maximum
+# Chromium UI strings. The game itself is drawn on a canvas.
+electronLanguages:
+  - ko
+  - en-US
 directories:
   output: release
   buildResources: electron/assets
