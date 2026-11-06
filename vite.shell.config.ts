@@ -1,3 +1,4 @@
+import { copyFileSync, existsSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
@@ -13,6 +14,47 @@ import { defineConfig, type Plugin } from "vite";
  * The shells expect `shell/dist/index.html`, so the html is moved after emit.
  */
 const root = path.dirname(fileURLToPath(import.meta.url));
+const surimTitle = path.join(root, "packaging/surim/surim-title.jpg");
+
+/** Packaging-only copy. The Vercel build does not load this plugin. */
+function applySurimText(code: string): string {
+  return code
+    .replaceAll("유수현", "강수림")
+    .replaceAll("수현아", "수림아")
+    .replaceAll("수현이", "수림이")
+    .replaceAll("SUHYEON", "SURIM");
+}
+
+function surimFlavor(): Plugin {
+  return {
+    name: "native-surim-flavor",
+    enforce: "pre",
+    transform(code, id) {
+      if (id.includes("node_modules")) return null;
+      if (!/\.(tsx?|jsx?|css)$/.test(id)) return null;
+      const next = applySurimText(code);
+      if (next === code) return null;
+      return { code: next, map: null };
+    },
+    closeBundle() {
+      const dist = path.join(root, "shell/dist");
+      copyFileSync(surimTitle, path.join(dist, "surim-title.jpg"));
+      const webTitle = path.join(dist, "suhyeon-title.jpg");
+      if (existsSync(webTitle)) unlinkSync(webTitle);
+      const assets = path.join(dist, "assets");
+      if (!existsSync(assets)) return;
+      for (const name of readdirSync(assets)) {
+        if (!name.endsWith(".css")) continue;
+        const file = path.join(assets, name);
+        const css = readFileSync(file, "utf8");
+        const next = css
+          .replaceAll("suhyeon-title.jpg", "surim-title.jpg")
+          .replaceAll("url(../surim-title.jpg) 50% 18%", "url(../surim-title.jpg) 72% 50%");
+        if (next !== css) writeFileSync(file, next);
+      }
+    },
+  };
+}
 
 function flattenShellIndex(): Plugin {
   return {
@@ -33,7 +75,7 @@ export default defineConfig({
   root,
   base: "./",
   publicDir: path.join(root, "public"),
-  plugins: [tailwindcss(), viteReact(), flattenShellIndex()],
+  plugins: [surimFlavor(), tailwindcss(), viteReact(), flattenShellIndex()],
   resolve: {
     alias: [
       {

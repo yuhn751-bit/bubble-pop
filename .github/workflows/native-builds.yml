@@ -56,8 +56,26 @@ jobs:
             echo "offline shell entry was not bundled"
             exit 1
           fi
+          if ! grep -R -q "강수림" shell/dist; then
+            echo "packaged shell is missing the 수림 flavor"
+            exit 1
+          fi
+          if grep -R -q "FOR SUHYEON" shell/dist; then
+            echo "packaged shell still has the website dedication"
+            exit 1
+          fi
+          if ! grep -q 'PLAYER_NAME = "유수현"' src/game/praise.ts; then
+            echo "website praise copy was changed"
+            exit 1
+          fi
+          if grep -q "강수림" src/game/praise.ts src/components/game-view.tsx src/styles.css README.md; then
+            echo "website sources must stay 유수현"
+            exit 1
+          fi
+          test -f public/suhyeon-title.jpg
           test -f shell/dist/index.html
           test -f shell/dist/surim-title.jpg
+          test ! -f shell/dist/suhyeon-title.jpg
 
       - name: Use the git tag as the app version
         if: startsWith(github.ref, 'refs/tags/v')
@@ -133,8 +151,26 @@ jobs:
             echo "offline shell entry was not bundled"
             exit 1
           fi
+          if ! grep -R -q "강수림" shell/dist; then
+            echo "packaged shell is missing the 수림 flavor"
+            exit 1
+          fi
+          if grep -R -q "FOR SUHYEON" shell/dist; then
+            echo "packaged shell still has the website dedication"
+            exit 1
+          fi
+          if ! grep -q 'PLAYER_NAME = "유수현"' src/game/praise.ts; then
+            echo "website praise copy was changed"
+            exit 1
+          fi
+          if grep -q "강수림" src/game/praise.ts src/components/game-view.tsx src/styles.css README.md; then
+            echo "website sources must stay 유수현"
+            exit 1
+          fi
+          test -f public/suhyeon-title.jpg
           test -f shell/dist/index.html
           test -f shell/dist/surim-title.jpg
+          test ! -f shell/dist/suhyeon-title.jpg
 
       - name: Resolve app version
         id: ver
