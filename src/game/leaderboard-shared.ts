@@ -34,5 +34,5 @@ function stripControls(raw: string): string {
 export function sanitizeName(raw: string): string {
   const cleaned = stripControls(raw).replace(/\s+/g, " ").trim();
   const cut = [...cleaned].slice(0, NAME_MAX).join("");
-  return cut || "유수현";
+  return cut || "강수림";
 }
