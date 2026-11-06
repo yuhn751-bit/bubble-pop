@@ -80,7 +80,7 @@ export function GameView() {
 
   useEffect(() => {
     const saved = loadSave().name;
-    if (saved && saved !== "강수림") setPlayerName(saved);
+    if (saved && saved !== "유수현") setPlayerName(saved);
   }, []);
 
   useEffect(() => {
@@ -309,13 +309,13 @@ export function GameView() {
               <span className="title-bubble" />
             </div>
             <p className="title-copy stagger-item mt-3 text-xs font-medium tracking-widest">
-              FOR SURIM
+              FOR SUHYEON
             </p>
             <h1 className="title-logo stagger-item mt-1 font-display text-4xl leading-tight tracking-tight text-foreground">
               버블팝
             </h1>
             <p className="title-copy stagger-item mt-1 text-sm font-medium">
-              수림이를 위한 버블 퍼즐
+              수현이를 위한 버블 퍼즐
             </p>
             <p className="title-copy stagger-item mt-3 text-xs leading-relaxed">
               같은 색 세 개를 모으면 팡!

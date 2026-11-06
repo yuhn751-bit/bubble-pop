@@ -12,7 +12,7 @@ const DEFAULTS: SaveData = {
   version: SAVE_VERSION,
   best: 0,
   muted: false,
-  name: "강수림",
+  name: "유수현",
 };
 
 function migrate(raw: Partial<SaveData>): SaveData {
@@ -20,10 +20,8 @@ function migrate(raw: Partial<SaveData>): SaveData {
   next.version = SAVE_VERSION;
   if (!Number.isFinite(next.best) || next.best < 0) next.best = 0;
   next.muted = Boolean(next.muted);
-  let name = typeof next.name === "string" ? next.name.trim() : "";
-  // Earlier builds stored the previous dedication as the default nickname.
-  if (name === "유수현") name = "강수림";
-  next.name = name.slice(0, 12) || "강수림";
+  const name = typeof next.name === "string" ? next.name.trim() : "";
+  next.name = name.slice(0, 12) || "유수현";
   return next;
 }
 

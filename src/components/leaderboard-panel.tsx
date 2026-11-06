@@ -24,7 +24,7 @@ export function LeaderboardList({
       <p className="py-6 text-center text-sm text-muted">
         아직 기록이 없어요.
         <br />
-        첫 주인공은 수림이?
+        첫 주인공은 수현이?
       </p>
     );
   }
